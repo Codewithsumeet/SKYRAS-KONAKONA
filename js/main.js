@@ -40,32 +40,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ----------------- CONTINUE BUTTON (Webhook Only) ----------------- //
     const continueButton = document.getElementById("continue-button");
-    const WEBHOOK_URL = "https://sumeetwagh.app.n8n.cloud/webhook-test/750b15b5-b588-4f19-8fc2-7a05a1d00768";
+const WEBHOOK_URL = "https://sumeetwagh.app.n8n.cloud/webhook-test/750b15b5-b588-4f19-8fc2-7a05a1d00768";
 
-    continueButton?.addEventListener("click", async () => {
-        // Gather any data you want from the page
-        const nameInput = document.getElementById("inputName"); // optional
-        const payload = {
-            name: nameInput ? nameInput.value.trim() : "Anonymous",
-            timestamp: new Date().toISOString()
-        };
+continueButton.addEventListener("click", async () => {
+  // Example payload — customize if needed
+  const payload = {
+    timestamp: new Date().toISOString(),
+    message: "Frontend data sent successfully"
+  };
 
-        try {
-            const response = await fetch(WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            console.log(await response.text());
-            alert("Data submitted!");
-        } catch (error) {
-            console.error("Error sending to webhook:", error);
-            alert("Failed to submit data");
-        }
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
 
-    // ----------------- LOAD TALLY EMBED ----------------- //
-    if (typeof Tally !== 'undefined' && Tally.loadEmbeds) Tally.loadEmbeds();
+    // ✅ Catch and display what n8n returns
+    const resultText = await response.text();
+    console.log("Webhook response:", resultText);
 
+    // Try parsing JSON (in case n8n sends JSON)
+    let result;
+    try {
+      result = JSON.parse(resultText);
+    } catch {
+      result = resultText;
+    }
+
+    // ✅ Show it on the page
+    const outputDiv = document.getElementById("output");
+    if (outputDiv) {
+      outputDiv.innerText = typeof result === "object"
+        ? JSON.stringify(result, null, 2)
+        : result;
+    }
+
+    alert("Response received! Check below 👇");
+
+  } catch (error) {
+    console.error("Error sending to webhook:", error);
+    alert("Failed to send data");
+  }
 });
+
+
